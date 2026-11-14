@@ -126,9 +126,11 @@ because it helped on the 2025 validation year (701 → 646 MW). On the 2026 test
   * DGPA [government office calendar](https://data.gov.tw/dataset/14718) (same licence).
   * Weather: [Open-Meteo](https://open-meteo.com/) archive and previous-runs APIs (CC BY 4.0).
   * Typhoon days off: [CNA Focus Taiwan](https://focustaiwan.tw/society/202610230019), [CNA](https://cna.com.tw/news/aloc/202610220367.aspx), [Business Next](https://www.bnext.com.tw/article/91470/typhoon-holiday-2026), [EDH](https://edh.tw/articles/KE0gxI7).
+* **Map outline:** [Natural Earth](https://www.naturalearthdata.com/) 1:10m countries (public domain). **Page layout** modelled on [Electricity Maps](https://app.electricitymaps.com/).
 * **Libraries:** pandas, NumPy, scikit-learn, matplotlib, nbclient. **Fonts:** Inter and Noto Sans TC (SIL Open Font License).
 * **AI tools:** [Claude Code](https://claude.com/claude-code) (Anthropic) suggested this idea among several we discussed,
-  wrote most of the code and drafted this write-up. The video narration is an AI voice (Microsoft Edge text-to-speech).
+  wrote most of the code and drafted this write-up. [Higgsfield](https://higgsfield.ai/) made the three design mockups we chose
+  from. The video narration is an AI voice (Microsoft Edge text-to-speech).
 * This is a prototype for a student hackathon, not an official Taipower forecast.
 
 ## Repository
@@ -136,7 +138,7 @@ because it helped on the 2025 validation year (701 → 646 MW). On the 2026 test
 |---|---|
 | `power_weather.ipynb` | The whole project, run from top to bottom with its outputs. Runs in about 1 minute. |
 | `tools/build_notebook.py` | Builds and runs the notebook (`python tools/build_notebook.py`). |
-| `docs/` | The demo website: `index.html`, `app.js`, `model.js` (the model in JavaScript), `model.json` (weights and the 2026 replay). |
+| `docs/` | The demo website: `index.html`, `app.js`, `model.js` (the model in JavaScript), `model.json` (weights, the 2026 replay and each city's forecast temperature), `taiwan.json` (the map outline). |
 | `data/raw/` | A copy of every downloaded file, so the results can be repeated even if a source changes. |
 | `results/` | Charts and the test score table. |
 | `video/make_video.py` | Makes the 2-minute demo video. |

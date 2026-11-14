@@ -406,6 +406,7 @@ KNOWN = {   # checked in the news; links in the README
     "2026-07-11": "Typhoon Bavi: work and school called off in most counties",
     "2026-07-12": "day after Typhoon Bavi: the model trusted the low typhoon-day peak",
     "2026-02-13": "last workday before the 9-day Lunar New Year break",
+    "2026-02-16": "Lunar New Year's Eve: demand fell further than on an average day of the break",
     "2026-09-28": "Teachers' Day, a public holiday again since 2025: demand stayed closer to a workday's",
 }
 
@@ -631,6 +632,15 @@ os.makedirs("models", exist_ok=True)
 joblib.dump(final, "models/power_weather_ridge.joblib")
 
 fT = features(X[TEST], "fc", True)
+# each city's own day-ahead forecast of the max temperature (the map in the demo shows these)
+CITY_NAMES = list(CITIES)
+city_tmax = {}
+for name, loc in zip(CITY_NAMES, fc_json):
+    h = pd.DataFrame(loc["hourly"]); h.index = pd.to_datetime(h.pop("time"))
+    city_tmax[name] = h["temperature_2m_previous_day1"].resample("D").max(min_count=20)
+city_tmax = pd.DataFrame(city_tmax)
+def city_row(day):
+    return [None if pd.isna(v) else round(float(v), 1) for v in city_tmax.loc[day, CITY_NAMES]]
 days = []
 for i, idx in enumerate(X.index[TEST]):
     r, f = X.loc[idx], fT.loc[idx]
@@ -643,7 +653,7 @@ for i, idx in enumerate(X.index[TEST]):
                  "load_last_week": round(float(r["load_last_week"]), 2), "today_off": int(r["today_off"]),
                  "years": round(float(r["years"]), 6), "lny": int(r["t_lunar_new_year"]),
                  "actual": round(float(y[idx])), "pred": round(float(pred[idx])), "persistence": round(float(r["load_today"])),
-                 "reserve_rate": round(float(r["y_rate"]), 2), "contrib": contrib})
+                 "reserve_rate": round(float(r["y_rate"]), 2), "contrib": contrib, "city_tmax": city_row(r["target_day"])})
 # the newest forecast we can make: for the day after the last day of data (no real value yet)
 today = daily.index.max(); tom = today + pd.Timedelta(days=1)
 L = pd.DataFrame({"target_day": [tom], "t_dow": [tom.dayofweek], "t_off": [int(cal["是否放假"].get(tom) == 2)],
@@ -659,12 +669,14 @@ latest = {"date": tom.strftime("%Y-%m-%d"), "dow": int(tom.dayofweek), "off": in
           "rain_fc": round(float(L["rain_fc"].iloc[0]), 4), "load_today": round(float(L["load_today"].iloc[0]), 2),
           "load_last_week": round(float(L["load_last_week"].iloc[0]), 2), "today_off": int(L["today_off"].iloc[0]),
           "years": round(float(L["years"].iloc[0]), 6), "lny": 0, "pred": round(float(final.predict(features(L, "fc", True))[0])),
-          "contrib": {g: round(float((coef[c] * (fL[c] - TYPICAL[c])).sum())) for g, c in GROUPS.items()}}
+          "contrib": {g: round(float((coef[c] * (fL[c] - TYPICAL[c])).sum())) for g, c in GROUPS.items()},
+          "city_tmax": city_row(tom)}
 print(f"newest forecast: {latest['date']} -> {latest['pred']:,} MW (made with data up to {today:%Y-%m-%d})")
 
 web = {
     "title": "Power Weather Taiwan",
     "latest": latest,
+    "cities": [{"name": n, "lat": CITIES[n][0], "lon": CITIES[n][1], "weight": CITIES[n][2]} for n in CITY_NAMES],
     "yellow_2026": {"days": int(yt[TEST].sum()), "warned": int(warned.sum()), "caught": int((warned & (yt[TEST] == 1)).sum()),
                     "test_days": int(TEST.sum()), "false_alarm_pct": round(100 * (1 - precision_score(yt[TEST], warned)))},
     "yellow_cause": {"demand_pct": round(float(cmp.iloc[0, 0] * 100), 1), "supply_pct": round(float(cmp.iloc[0, 1] * 100), 1)},

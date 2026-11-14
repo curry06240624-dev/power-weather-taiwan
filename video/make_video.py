@@ -114,7 +114,7 @@ CARDS = {
         <p>Demo: curry06240624-dev.github.io/power-weather-taiwan</p>
         <p>Code: github.com/curry06240624-dev/power-weather-taiwan</p>
         <p class='small'>Power Weather Taiwan · Veritas AI International High School Hackathon 2026 · a prototype, not an official Taipower forecast<br>
-        AI tools used: Claude Code (suggested the idea, wrote most of the code, the write-up and this script) · Microsoft Edge text-to-speech (this voice)</p>"""),
+        AI tools used: Claude Code (suggested the idea, wrote most of the code, the write-up and this script) · Higgsfield (design mockups) · Microsoft Edge text-to-speech (this voice)</p>"""),
 }
 
 # ---------- 3. screen recording of the real web demo ----------
@@ -140,7 +140,7 @@ with sync_playwright() as p:
     page = ctx.new_page()
     t0 = time.monotonic()
     page.goto("http://127.0.0.1:7864/")
-    page.wait_for_selector("#chips button", timeout=30000)
+    page.wait_for_selector("#jump option", state="attached", timeout=30000)
     page.add_style_tag(content=HL_CSS)
     page.wait_for_timeout(1500)
 
@@ -159,27 +159,32 @@ with sync_playwright() as p:
         page.wait_for_timeout(max(left, 1.0) * 1000)
         marks[key] = (start, time.monotonic() - t0)
 
+    def panel_to(selector):
+        page.evaluate("s => { const p = document.querySelector('.panel'); const e = document.querySelector(s); p.scrollTo({top: e.offsetTop - p.offsetTop - 8, behavior: 'instant'}); }", selector)
+        page.wait_for_timeout(400)
+
     def b1():
         page.wait_for_timeout(int(DUR["B1"] * 450))
         hl(".big", True); page.wait_for_timeout(2500); hl(".big", False)
-        hl("#cmp div:nth-child(2)", True)
+        hl(".rows div:nth-child(2)", True)
 
     def b2():
-        hl("#cmp div:nth-child(2)", False)
-        smooth_to(".chart-card", 12)
-        page.wait_for_timeout(600)
-        hl(".stat:nth-child(1)", True); hl(".stat:nth-child(2)", True)
+        hl(".rows div:nth-child(2)", False)
+        page.evaluate("location.hash = '#history'")
+        page.wait_for_timeout(700)
+        hl("#scores2 div:nth-child(1)", True); hl("#scores2 div:nth-child(2)", True)
 
     def b3():
-        hl(".stat", False)
-        smooth_to("main", 80)
-        page.click("text=Typhoon Champi")
-        page.wait_for_timeout(1200)
-        hl("#note", True); hl("#real", True)
+        hl("#scores2 div", False)
+        page.evaluate("location.hash = '#forecast'")
+        page.wait_for_timeout(500)
+        page.select_option("#jump", "2026-10-23")
+        page.wait_for_timeout(900)
+        hl("#note", True)
 
     def b4():
-        hl("#note", False); hl("#real", False)
-        smooth_to(".whatif", 16)
+        hl("#note", False)
+        panel_to(".block:nth-of-type(4)")
         page.click("#dtype button[data-t=work]")
         page.wait_for_timeout(500)
         v = float(page.eval_on_selector("#temp", "e => e.value"))
@@ -187,7 +192,7 @@ with sync_playwright() as p:
             v = min(35, v + 0.5)
             page.eval_on_selector("#temp", "(e, v) => { e.value = v; e.dispatchEvent(new Event('input')); }", v)
             page.wait_for_timeout(110)
-        hl(".whatif .small-big", True)
+        hl(".wi-row.result", True)
 
     step("B1", b1)
     step("B2", b2)
