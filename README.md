@@ -4,7 +4,7 @@
 **Team:** Yu-Rui Huang (Hsinchu County American School)
 
 **Live demo (runs in your browser):** https://curry06240624-dev.github.io/power-weather-taiwan/
-**Notebook with all results:** [`power_weather.ipynb`](power_weather.ipynb)
+**Notebook with all results:** [`power_weather.ipynb`](power_weather.ipynb) · [open it in Google Colab](https://colab.research.google.com/github/curry06240624-dev/power-weather-taiwan/blob/main/power_weather.ipynb) (Runtime → Run all, about 1 minute)
 
 ![Our forecast for 2026, a year the model never saw](results/forecast_2026.png)
 
