@@ -1,0 +1,8 @@
+__pycache__/
+.ipynb_checkpoints/
+models/
+scratch_*
+scratch_shots/
+*.log
+video/work/
+video/*.mp4

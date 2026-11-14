@@ -1,0 +1,7 @@
+method,MAE (MW),MAE (%)
+Persistence: same as today,1695,5.0
+Same weekday last week,1764,5.31
+Gradient boosting (trees),881,2.57
+"Ridge, basic features",613,1.86
+Ridge + heat-on-workdays (final model),580,1.75
+Final model fed the REAL weather (not possible in practice),535,1.62

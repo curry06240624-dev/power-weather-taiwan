@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Power Weather Taiwan · 明日電力預報</title>
+<meta name="description" content="A day-ahead forecast of Taiwan's daily peak electricity demand, tested on 2026 with the weather forecast made the day before.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2314181f'/%3E%3Cpath d='M18 4 8 18h7l-2 10 11-15h-7z' fill='%23ffd23f'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="./">
+      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#14181f"/><path d="M18 4 8 18h7l-2 10 11-15h-7z" fill="#ffd23f"/></svg>
+      <span>Power Weather Taiwan</span><span class="zh">明日電力預報</span>
+    </a>
+    <nav>
+      <a href="https://github.com/curry06240624-dev/power-weather-taiwan#readme">How it works</a>
+      <a href="https://github.com/curry06240624-dev/power-weather-taiwan/blob/main/power_weather.ipynb">Notebook</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="lede">How much power will Taiwan need at tomorrow's peak? Each forecast below was made the evening before, with only the weather <em>forecast</em>, the holiday calendar and recent demand. None of these 2026 days was used to train the model.</p>
+
+  <section class="grid hero">
+    <article class="card forecast" aria-live="polite">
+      <div class="daybar">
+        <button class="nav" id="prev" aria-label="Previous day">&#8249;</button>
+        <div class="daylabel"><span id="dayname">–</span><input type="date" id="picker" aria-label="Pick a 2026 day"></div>
+        <button class="nav" id="next" aria-label="Next day">&#8250;</button>
+      </div>
+      <div class="chips" id="chips"></div>
+      <p class="label">Forecast for the daily peak</p>
+      <p class="big"><span id="pred">–</span><small>GW</small></p>
+      <p class="real" id="real">–</p>
+      <ul class="facts" id="facts"></ul>
+      <p class="note" id="note" hidden></p>
+    </article>
+
+    <article class="card why">
+      <h2>How the forecast adds up</h2>
+      <div id="waterfall" class="waterfall"></div>
+      <div id="cmp" class="cmp"></div>
+      <p class="fine">Bars to the right add power, bars to the left take it away. Each one is the model's own weights times how far that day is from an average day.</p>
+    </article>
+  </section>
+
+  <section class="card chart-card">
+    <div class="chart-head">
+      <div>
+        <h2>2026, a year the model never saw</h2>
+        <p class="fine">Click the chart to pick a day. The strip underneath is Taipower's real light for that day.</p>
+      </div>
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="legend">
+      <span><i class="sw real"></i>Real peak</span>
+      <span><i class="sw ours"></i>Our forecast</span>
+      <label><input type="checkbox" id="showPersist"> <i class="sw persist"></i>Same as today</label>
+    </div>
+    <div id="chart" class="chart" role="img" aria-label="Daily peak demand in 2026, real and forecast"></div>
+    <div id="lights" class="lights" aria-hidden="true"></div>
+    <div class="lights-key"><span><i class="dot green"></i>Green: reserve 10% or more</span><span><i class="dot yellow"></i>Yellow: under 10%</span></div>
+  </section>
+
+  <section class="grid lower">
+    <article class="card whatif">
+      <h2>What if tomorrow is…</h2>
+      <p class="fine" id="whatifBase">–</p>
+      <div class="ctl">
+        <label for="temp">Max temperature <b id="tempVal">–</b></label>
+        <input type="range" id="temp" min="14" max="38" step="0.5">
+      </div>
+      <div class="seg" id="dtype" role="radiogroup" aria-label="Day type">
+        <button data-t="work" role="radio">Workday</button>
+        <button data-t="sat" role="radio">Saturday off</button>
+        <button data-t="sun" role="radio">Sunday off</button>
+        <button data-t="hol" role="radio">Holiday</button>
+      </div>
+      <p class="label">Forecast peak</p>
+      <p class="big small-big"><span id="wiPred">–</span><small>GW</small></p>
+      <div class="meter"><div id="wiBar"></div><span id="wiRecord"></span></div>
+      <p class="fine" id="wiNote">–</p>
+    </article>
+
+    <article class="card limits">
+      <h2>What it can't do</h2>
+      <div class="limit">
+        <h3>Warn about yellow-light days</h3>
+        <p id="limYellow">–</p>
+      </div>
+      <div class="limit">
+        <h3>See typhoon days off</h3>
+        <p>Cities call off work and school the evening before, and it isn't in the holiday calendar. On 23 Oct 2026 (Typhoon Champi) the forecast was 15.9% too high.</p>
+      </div>
+      <div class="limit">
+        <h3>Explain the growth</h3>
+        <p id="limGrowth">–</p>
+      </div>
+    </article>
+  </section>
+</main>
+
+<footer class="wrap foot">
+  <p>Student project for the Veritas AI International High School Hackathon 2026. A prototype, not an official Taipower forecast.</p>
+  <p>Data: Taipower open data and the DGPA holiday calendar (Open Government Data License, Taiwan); weather by <a href="https://open-meteo.com/">Open-Meteo.com</a> (CC BY 4.0). Model: ridge regression, 17 weights, running in your browser.</p>
+</footer>
+
+<script src="model.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
